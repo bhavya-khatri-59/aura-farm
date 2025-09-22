@@ -72,7 +72,7 @@ async def diagnose_plant(
             # 1. Read image content
             image_bytes = await image.read()
             # 2. Get disease prediction from the local ML model
-            disease_name, confidence = get_disease_prediction(image_bytes)
+            disease_name, confidence = await get_disease_prediction(image_bytes)
             # 3. Get remedies for the predicted disease
             remedy_info = remedies_data.get(disease_name, {
                 "description": "No specific remedy information found for this condition.",
