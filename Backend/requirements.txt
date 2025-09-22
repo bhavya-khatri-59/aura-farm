@@ -1,8 +1,8 @@
 fastapi
 uvicorn[standard]
-python-multipart
-tensorflow
-Pillow
-numpy
 google-generativeai
-httpx
+python-dotenv
+requests
+python-multipart
+Pillow
+tensorflow==2.13.1
