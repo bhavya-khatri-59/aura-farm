@@ -1,106 +1,73 @@
-# disease_detector.py
-# This is the unified, local version of the disease detector.
-# It loads the model from the ./Model directory and runs inference directly.
-
 import os
 import json
 import numpy as np
-from typing import Tuple, List
 from PIL import Image
 import tensorflow as tf
-import tempfile
+from typing import Tuple, List
 
-# --- Configuration ---
-# The path to the directory where the trained model and class names are stored.
-MODEL_DIR = "./Model"
-DEFAULT_IMG_SIZE = (224, 224)
-
-# --- Model Loading ---
-# Load the model and class names once when the server starts up.
-# This is much more efficient than loading it on every request.
+# Define global variables for the model and class names
+# They will be loaded by the startup function
 model = None
 class_names = []
 
-try:
-    model_path = os.path.join(MODEL_DIR, 'model.h5')
-    class_names_path = os.path.join(MODEL_DIR, 'class_names.json')
+def load_model_on_startup():
+    """
+    Loads the trained model and class names from the /Model directory.
+    This function is called once when the FastAPI application starts.
+    """
+    global model, class_names
+    
+    model_dir = './Model'
+    model_path = os.path.join(model_dir, 'model.h5')
+    class_names_path = os.path.join(model_dir, 'class_names.json')
 
-    if not (os.path.exists(model_path) and os.path.exists(class_names_path)):
-        print("WARNING: Model file or class_names.json not found in ./Model directory.")
-        print("The application will run, but predictions will fail.")
-    else:
+    if not os.path.exists(model_path) or not os.path.exists(class_names_path):
+        print(f"ERROR: Model files not found in {model_dir}. Please ensure model.h5 and class_names.json are present.")
+        # In a real app, you might raise an exception here
+        return
+
+    try:
         model = tf.keras.models.load_model(model_path)
         with open(class_names_path, 'r') as f:
             class_names = json.load(f)
         print("Successfully loaded model and class names.")
-
-except Exception as e:
-    print(f"An error occurred during model loading: {e}")
-    # The application can still start, but predictions will return an error.
-    model = None
-
-
-def _run_prediction_logic(image_path: str) -> List[dict]:
-    """
-    This function contains the core prediction logic, adapted from Rudy's script.
-    It takes an image file path and returns a list of prediction dictionaries.
-    """
-    img = Image.open(image_path).convert('RGB')
-    img = img.resize(DEFAULT_IMG_SIZE)
-    arr = np.array(img) / 255.0
-    arr = np.expand_dims(arr, axis=0)  # Create a batch of 1
-
-    preds = model.predict(arr)[0]
-    top_indices = preds.argsort()[-3:][::-1] # Get top 3 predictions
-
-    results = []
-    for i in top_indices:
-        class_name = class_names[i]
-        prob = float(preds[i])
-        results.append({"class": class_name, "prob": prob})
-    return results
+    except Exception as e:
+        print(f"An error occurred during model loading: {e}")
+        # Handle the error appropriately
+        model = None
+        class_names = []
 
 
 async def get_disease_prediction(image_bytes: bytes) -> Tuple[str, float]:
     """
-    The main prediction function called by the FastAPI server.
-    It saves the uploaded image bytes to a temporary file and runs prediction.
-
-    Args:
-        image_bytes: The raw bytes of the image file from the upload.
-
-    Returns:
-        A tuple with the top predicted disease name and its confidence score.
+    Takes image bytes, preprocesses the image, and returns the top prediction.
     """
     if model is None or not class_names:
-        print("Error: Model is not loaded. Cannot perform prediction.")
-        return "Model not loaded", 0.0
-
-    # Create a temporary file to save the image bytes
-    # This is necessary because the prediction logic expects a file path.
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_image:
-        temp_image.write(image_bytes)
-        temp_image_path = temp_image.name
+        print("Model is not loaded. Returning default error.")
+        return "Error: Model not loaded", 0.0
 
     try:
-        # Run the prediction on the saved temporary file
-        predictions = _run_prediction_logic(temp_image_path)
+        from io import BytesIO
+        img_size = (224, 224)
+        
+        # Open image from bytes
+        img = Image.open(BytesIO(image_bytes)).convert('RGB')
+        img = img.resize(img_size)
+        
+        # Preprocess the image
+        arr = np.array(img) / 255.0
+        arr = np.expand_dims(arr, axis=0)  # Add batch dimension
 
-        if not predictions:
-            return "No prediction found", 0.0
-
-        # Extract the top prediction
-        top_prediction = predictions[0]
-        disease_name = top_prediction.get("class", "Unknown Disease")
-        confidence = top_prediction.get("prob", 0.0)
-
-        print(f"Local prediction successful: {disease_name} ({confidence:.2%})")
+        # Make prediction
+        preds = model.predict(arr)[0]
+        top_index = np.argmax(preds)
+        
+        disease_name = class_names[top_index]
+        confidence = float(preds[top_index])
+        
         return disease_name, confidence
 
     except Exception as e:
-        print(f"An error occurred during prediction: {e}")
-        return "Prediction Error", 0.0
-    finally:
-        # IMPORTANT: Clean up the temporary file after prediction
-        os.remove(temp_image_path)
+        print(f"Error during prediction: {e}")
+        return "Error during prediction", 0.0
 
