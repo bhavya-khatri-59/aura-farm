@@ -1,0 +1,43 @@
+{
+    "Tomato___Late_blight": {
+        "description": "Late blight is a destructive disease of tomatoes, caused by a fungus-like organism. It thrives in cool, moist conditions.",
+        "organic_treatment": [
+            "Remove and destroy affected leaves immediately.",
+            "Apply copper-based fungicides as a preventative measure.",
+            "Ensure good air circulation around plants."
+        ],
+        "chemical_treatment": [
+            "Apply fungicides containing chlorothalonil or mancozeb.",
+            "Follow the application instructions on the product label carefully."
+        ]
+    },
+    "Tomato___healthy": {
+        "description": "The plant appears to be healthy. Continue good watering and nutrient practices.",
+        "organic_treatment": [
+            "Monitor regularly for signs of pests or disease.",
+            "Use organic mulch to retain soil moisture."
+        ],
+        "chemical_treatment": []
+    },
+    "Potato___Early_blight": {
+        "description": "Early blight is a common fungal disease that affects potatoes, characterized by small, dark lesions on lower leaves.",
+        "organic_treatment": [
+            "Apply a biofungicide containing Bacillus subtilis.",
+            "Rotate crops and remove plant debris after harvest."
+        ],
+        "chemical_treatment": [
+            "Use fungicides with active ingredients like azoxystrobin or pyraclostrobin."
+        ]
+    },
+    "Pepper__bell___Bacterial_spot": {
+        "description": "Bacterial spot causes lesions on leaves and fruit of pepper plants, and is more common in warm, humid weather.",
+        "organic_treatment": [
+            "Apply copper sprays, but be cautious as overuse can harm plants.",
+            "Avoid working with plants when they are wet."
+        ],
+        "chemical_treatment": [
+            "Apply bactericides containing streptomycin, but be aware of potential resistance."
+        ]
+    }
+}
+

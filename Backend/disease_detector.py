@@ -1,71 +1,47 @@
-# disease_detector.py
-# This module is responsible for loading the local TensorFlow model
-# and running predictions on an image.
+# disease_detector_mock.py
+# This is a MOCK file for testing the backend and frontend.
+# It simulates the behavior of the real disease detector by returning a
+# random disease and confidence score.
 
-import os
-from PIL import Image
-import numpy as np
-import tensorflow as tf
-import io
-import json
+import random
 from typing import Tuple
+import time
 
-# --- Configuration ---
-# Set the path to your model and class names file
-MODEL_DIR = "Model"
-MODEL_PATH = os.path.join(MODEL_DIR, "plant_disease_model.h5")
-CLASS_NAMES_PATH = os.path.join(MODEL_DIR, "class_names.json")
-
-# --- Load Model and Class Names ---
-try:
-    # Load the trained model
-    model = tf.keras.models.load_model(MODEL_PATH)
-
-    # Load the class names from the JSON file
-    with open(CLASS_NAMES_PATH, 'r') as f:
-        CLASS_NAMES = json.load(f)
-
-except (IOError, FileNotFoundError) as e:
-    print(f"Error loading model or class names: {e}")
-    print("Please ensure 'plant_disease_model.h5' and 'class_names.json' are in the 'Model' directory.")
-    model = None
-    CLASS_NAMES = []
+# A list of possible diseases the mock detector can "predict".
+MOCK_DISEASES = [
+    'Tomato___Late_blight',
+    'Tomato___healthy',
+    'Potato___Early_blight',
+    'Pepper__bell___Bacterial_spot',
+    'Tomato___Septoria_leaf_spot',
+    'Tomato___Tomato_Yellow_Leaf_Curl_Virus',
+    'Pepper__bell___healthy'
+]
 
 
 def get_disease_prediction(image_bytes: bytes) -> Tuple[str, float]:
     """
-    Takes image bytes, preprocesses the image, and predicts the disease.
+    Simulates a disease prediction. This function has the same signature as the
+    real one but does not use the image_bytes.
 
     Args:
-        image_bytes: The image of the plant leaf in bytes.
+        image_bytes: The image of the plant leaf in bytes (not used in mock).
 
     Returns:
-        A tuple containing the predicted disease name and the confidence score.
+        A tuple containing a randomly selected disease name and a random confidence score.
     """
-    if model is None or not CLASS_NAMES:
-        return "Error: Model not loaded", 0.0
+    # Simulate a delay, just like a real model would have
+    time.sleep(1.5)
 
-    try:
-        # Open the image from bytes
-        img = Image.open(io.BytesIO(image_bytes))
+    # Choose a random disease from our list
+    predicted_disease = random.choice(MOCK_DISEASES)
 
-        # Preprocess the image to match the model's input requirements
-        # (e.g., resize, convert to array, normalize)
-        img = img.resize((224, 224))
-        img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)  # Create a batch
+    # Generate a random confidence score between 85% and 99%
+    confidence = random.uniform(0.85, 0.99)
 
-        # Make prediction
-        predictions = model.predict(img_array)
-        
-        # Get the class with the highest probability
-        predicted_class_index = np.argmax(predictions[0])
-        confidence = float(np.max(predictions[0]))
+    # Print a message to the console so you know the mock is being used
+    print("---  MOCK DETECTOR ACTIVE ---")
+    print(f"Mock Prediction: {predicted_disease} with {confidence:.2%} confidence")
+    print("----------------------------")
 
-        disease_name = CLASS_NAMES[predicted_class_index]
-        return disease_name, confidence
-
-    except Exception as e:
-        print(f"An error occurred during prediction: {e}")
-        return "Error during prediction", 0.0
-
+    return predicted_disease, confidence
