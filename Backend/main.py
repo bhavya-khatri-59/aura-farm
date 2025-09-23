@@ -52,12 +52,10 @@ async def diagnose_plant(
 
         image_bytes = await image.read()
         disease_name, confidence = await get_disease_prediction(image_bytes)
-
-        # --- FIX APPLIED HERE ---
-        # We now pass the diagnosed disease to the farmer network service.
+        
         weather_data = await get_weather(lat, lon)
         remedy_data = remedies_db.get(disease_name, {})
-        farmer_data = get_nearby_farmer_data(lat, lon, disease_name) # Pass disease_name here
+        farmer_data = get_nearby_farmer_data(lat, lon, disease_name)
         
         diagnosis_result = {
             "name": disease_name,
