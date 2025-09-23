@@ -137,3 +137,52 @@ Wrap this inside FastAPI → /predict endpoint.
 
 PPT 
 Mukil - Canva
+
+# AuraFarm Backend Flowchart
+
+This flowchart outlines the two main operational modes of the AuraFarm backend: **Diagnosis Mode** (when an image is provided) and **Conversational Mode** (when only a text prompt is sent).
+
+```mermaid
+graph TD
+    subgraph Client
+        A[Flutter App]
+    end
+
+    subgraph Backend: FastAPI
+        B{Request Received}
+        C{Image Provided?}
+        
+        subgraph Diagnosis Mode
+            D[1. Run Disease Detector Model]
+            E[2. Get Remedy from JSON]
+            F[3. Call Weather API]
+            G[4. Get Nearby Farmer Data]
+            H[5. Compile Full Context for LLM]
+        end
+        
+        subgraph Conversational Mode
+            I[Use Prompt & History Only]
+        end
+        
+        J[Send Context to Gemini 2.5 Pro LLM]
+        K[Generate Conversational Response]
+        L[Send Response to Client]
+    end
+
+    A -- "prompt, history, [image, lat, lon]" --> B
+    B --> C
+    
+    C -- Yes --> D
+    D -- "disease_name, confidence" --> E
+    E --> F
+    F -- "weather_data" --> G
+    G -- "nearby_farmer_data" --> H
+    H --> J
+
+    C -- No --> I
+    I --> J
+    
+    J --> K
+    K -- "final_response" --> L
+    L --> A
+'''
