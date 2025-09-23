@@ -6,3 +6,5 @@ Pillow
 python-multipart
 httpx
 tensorflow-hub
+tensorflow
+numpy
