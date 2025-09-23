@@ -4,21 +4,17 @@ import json
 from typing import List, Optional
 
 # Import your handler functions
-from disease_detector import load_model_on_startup, get_disease_prediction
+# NOTE: We no longer import or call load_model_on_startup here
+from disease_detector import get_disease_prediction 
 from llm_handler import get_conversational_response
-from weather_service import get_weather_data as get_weather
+from weather_service import get_weather
 from farmer_network_service import get_nearby_farmer_data
 
 # --- FastAPI App Initialization ---
 app = FastAPI(title="AuraFarm AI Backend")
 
-# --- Startup Event ---
-@app.on_event("startup")
-async def startup_event():
-    """Loads the ML model when the server starts."""
-    print("Server starting up...")
-    load_model_on_startup()
-    print("Startup complete. Model is ready.")
+# --- REMOVED STARTUP EVENT ---
+# The model will now be loaded on the first request inside disease_detector.py
 
 # --- Helper Function to Load Remedies ---
 def load_remedies():
@@ -38,7 +34,7 @@ async def diagnose_plant(
     image: Optional[UploadFile] = File(None),
     lat: Optional[float] = Form(None),
     lon: Optional[float] = Form(None),
-    history: str = Form("[]") # Receive history as a JSON string
+    history: str = Form("[]")
 ):
     try:
         conversation_history = json.loads(history)
@@ -51,6 +47,7 @@ async def diagnose_plant(
             raise HTTPException(status_code=400, detail="Latitude and longitude are required when uploading an image.")
 
         image_bytes = await image.read()
+        # The model will be loaded here on the first call
         disease_name, confidence = await get_disease_prediction(image_bytes)
         
         weather_data = await get_weather(lat, lon)
