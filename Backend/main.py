@@ -7,7 +7,7 @@ from typing import List, Optional
 # NOTE: We no longer import or call load_model_on_startup here
 from disease_detector import get_disease_prediction 
 from llm_handler import get_conversational_response
-from weather_service import get_weather
+from weather_service import get_weather_data as get_weather
 from farmer_network_service import get_nearby_farmer_data
 
 # --- FastAPI App Initialization ---
